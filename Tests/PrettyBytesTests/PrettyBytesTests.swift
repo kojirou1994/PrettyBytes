@@ -12,19 +12,19 @@ final class PrettyBytesTests: XCTestCase {
     for byte in 0...UInt8.max {
       XCTAssertEqual(
         BytesStringFormatter(uppercase: true).bytesToHexString(CollectionOfOne(byte)),
-        String(format: "%02X", byte),
+        String(format: "%02X", byte)
       )
       XCTAssertEqual(
         BytesStringFormatter(uppercase: false).bytesToHexString(CollectionOfOne(byte)),
-        String(format: "%02x", byte),
+        String(format: "%02x", byte)
       )
       XCTAssertEqual(
         BytesStringFormatter(uppercase: true).bytesToHexString(CollectionOfOne(byte)),
-        slowHex(byte, uppercase: true),
+        slowHex(byte, uppercase: true)
       )
       XCTAssertEqual(
         BytesStringFormatter(uppercase: false).bytesToHexString(CollectionOfOne(byte)),
-        slowHex(byte, uppercase: false),
+        slowHex(byte, uppercase: false)
       )
     }
   }
@@ -49,7 +49,7 @@ final class PrettyBytesTests: XCTestCase {
     for uppercase in [true, false] {
       XCTAssertEqual(
         BytesStringFormatter(uppercase: uppercase).bytesToHexString(nonStorage),
-        BytesStringFormatter(uppercase: uppercase).bytesToHexString(storage),
+        BytesStringFormatter(uppercase: uppercase).bytesToHexString(storage)
       )
     }
   }
