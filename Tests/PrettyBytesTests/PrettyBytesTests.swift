@@ -26,4 +26,16 @@ final class PrettyBytesTests: XCTestCase {
       )
     }
   }
+
+  func testNonStorageSequence() {
+    let nonStorage = repeatElement(0x5a as UInt8, count: 100)
+    let storage = Array(nonStorage)
+
+    for uppercase in [true, false] {
+      XCTAssertEqual(
+        BytesStringFormatter(uppercase: uppercase).bytesToHexString(nonStorage),
+        BytesStringFormatter(uppercase: uppercase).bytesToHexString(storage),
+      )
+    }
+  }
 }

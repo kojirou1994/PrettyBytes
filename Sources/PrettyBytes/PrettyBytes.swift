@@ -14,7 +14,7 @@ extension BytesStringFormatter {
     return (value > 9) ? ((uppercase ? UInt8(ascii: "A") : UInt8(ascii: "a")) + value - 10) : (UInt8(ascii: "0") + value)
   }
 
-  public func bytesToHexString<T>(_ bytes: T) -> String where T: Sequence, T.Element == UInt8 {
+  public func bytesToHexString(_ bytes: some Sequence<UInt8>) -> String {
     if let string = bytes.withContiguousStorageIfAvailable({ bytesBuffer -> String in
 
       func convert(toBuffer buffer: UnsafeMutableBufferPointer<UInt8>) {
