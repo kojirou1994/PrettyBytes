@@ -7,19 +7,34 @@ func slowHex(_ v: UInt8, uppercase: Bool) -> String {
 }
 
 final class PrettyBytesTests: XCTestCase {
+
+  func testSingleByteOutput() {
+    for byte in 0...UInt8.max {
+      XCTAssertEqual(
+        BytesStringFormatter(uppercase: true).bytesToHexString(CollectionOfOne(byte)),
+        String(format: "%02X", byte),
+      )
+      XCTAssertEqual(
+        BytesStringFormatter(uppercase: false).bytesToHexString(CollectionOfOne(byte)),
+        String(format: "%02x", byte),
+      )
+      XCTAssertEqual(
+        BytesStringFormatter(uppercase: true).bytesToHexString(CollectionOfOne(byte)),
+        slowHex(byte, uppercase: true),
+      )
+      XCTAssertEqual(
+        BytesStringFormatter(uppercase: false).bytesToHexString(CollectionOfOne(byte)),
+        slowHex(byte, uppercase: false),
+      )
+    }
+  }
+
+
   func testBytesToHexString() throws {
 
     let buffer = Array(0...UInt8.max)
 
     for uppercase in [true, false] {
-
-      for number in buffer {
-        XCTAssertEqual(
-          BytesStringFormatter(uppercase: uppercase).bytesToHexString(CollectionOfOne(number)),
-          slowHex(number, uppercase: uppercase)
-        )
-      }
-
       XCTAssertEqual(
         BytesStringFormatter(uppercase: uppercase).bytesToHexString(buffer),
         buffer.map {slowHex($0, uppercase: uppercase)}.joined()
