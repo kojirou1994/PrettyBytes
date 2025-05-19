@@ -14,25 +14,26 @@ extension BytesStringFormatter {
     return (value > 9) ? ((uppercase ? UInt8(ascii: "A") : UInt8(ascii: "a")) + value - 10) : (UInt8(ascii: "0") + value)
   }
 
+  public func bytesToHexString(buffer: UnsafeBufferPointer<UInt8>, outputBuffer: UnsafeMutableBufferPointer<UInt8>) {
+    assert(outputBuffer.count == (buffer.count * 2))
+    for (offset, i) in buffer.enumerated() {
+      outputBuffer[offset * 2] = r4bitsToHexASCII((i >> 4) & 0xF)
+      outputBuffer[offset * 2 + 1] = r4bitsToHexASCII(i & 0xF)
+    }
+  }
+
   public func bytesToHexString(_ bytes: some Sequence<UInt8>) -> String {
     if let string = bytes.withContiguousStorageIfAvailable({ bytesBuffer -> String in
-
-      func convert(toBuffer buffer: UnsafeMutableBufferPointer<UInt8>) {
-        for (offset, i) in bytesBuffer.enumerated() {
-          buffer[offset * 2] = r4bitsToHexASCII((i >> 4) & 0xF)
-          buffer[offset * 2 + 1] = r4bitsToHexASCII(i & 0xF)
-        }
-      }
 
       let hexLen = bytesBuffer.count * 2
       if #available(macOS 11.0, iOS 14.0, watchOS 7.0, tvOS 14.0, *) {
         return String(unsafeUninitializedCapacity: hexLen) { hexBuffer in
-          convert(toBuffer: hexBuffer)
+          bytesToHexString(buffer: bytesBuffer, outputBuffer: hexBuffer)
           return hexLen
         }
       } else {
         return withUnsafeTemporaryAllocation(of: UInt8.self, capacity: hexLen) { hexBuffer in
-          convert(toBuffer: hexBuffer)
+          bytesToHexString(buffer: bytesBuffer, outputBuffer: hexBuffer)
           return String(decoding: hexBuffer, as: UTF8.self)
         }
       }
