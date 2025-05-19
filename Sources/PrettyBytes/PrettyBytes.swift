@@ -6,37 +6,35 @@ public struct BytesStringFormatter {
   public var uppercase: Bool
 }
 
-public extension BytesStringFormatter {
+extension BytesStringFormatter {
 
-  @inlinable
-  func bytesToHexString<T>(_ bytes: T) -> String where T: Sequence, T.Element == UInt8 {
+  /// value only have right side 4bits
+  private func r4bitsToHexASCII(_ value: UInt8) -> UInt8 {
+    assert(value & 0xf0 == 0)
+    return (value > 9) ? ((uppercase ? UInt8(ascii: "A") : UInt8(ascii: "a")) + value - 10) : (UInt8(ascii: "0") + value)
+  }
+
+  public func bytesToHexString<T>(_ bytes: T) -> String where T: Sequence, T.Element == UInt8 {
     if let string = bytes.withContiguousStorageIfAvailable({ bytesBuffer -> String in
-
-      func itoh(_ value: UInt8) -> UInt8 {
-        (value > 9) ? ((uppercase ? UInt8(ascii: "A") : UInt8(ascii: "a")) + value - 10) : (UInt8(ascii: "0") + value)
-      }
 
       func convert(toBuffer buffer: UnsafeMutableBufferPointer<UInt8>) {
         for (offset, i) in bytesBuffer.enumerated() {
-          buffer[offset * 2] = itoh((i >> 4) & 0xF)
-          buffer[offset * 2 + 1] = itoh(i & 0xF)
+          buffer[offset * 2] = r4bitsToHexASCII((i >> 4) & 0xF)
+          buffer[offset * 2 + 1] = r4bitsToHexASCII(i & 0xF)
         }
       }
 
       let hexLen = bytesBuffer.count * 2
-      if #available(macOS 11.0, *) {
+      if #available(macOS 11.0, iOS 14.0, watchOS 7.0, tvOS 14.0, *) {
         return String(unsafeUninitializedCapacity: hexLen) { hexBuffer in
           convert(toBuffer: hexBuffer)
           return hexLen
         }
       } else {
-        let hexBuffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: hexLen)
-        defer {
-          hexBuffer.initialize(repeating: 0)
-          hexBuffer.deallocate()
+        return withUnsafeTemporaryAllocation(of: UInt8.self, capacity: hexLen) { hexBuffer in
+          convert(toBuffer: hexBuffer)
+          return String(decoding: hexBuffer, as: UTF8.self)
         }
-        convert(toBuffer: hexBuffer)
-        return String(decoding: hexBuffer, as: UTF8.self)
       }
 
     }) {
